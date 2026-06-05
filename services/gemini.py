@@ -7,7 +7,7 @@ from PIL import Image
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-_model = genai.GenerativeModel("gemini-2.0-flash")
+_model = genai.GenerativeModel("gemini-2.5-flash")
 
 _PROMPT = """Eres un experto en gestión de residuos y reciclaje. Analiza la imagen adjunta.
 Responde ÚNICAMENTE con un objeto JSON válido. Sin markdown, sin texto adicional, sin explicaciones.
