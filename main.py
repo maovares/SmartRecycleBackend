@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from routers import ai
+from routers import ai, centers
 
 app = FastAPI(title="Smart Recycle AI API", version="1.0.0")
 
@@ -16,6 +16,7 @@ app.add_middleware(
 )
 
 app.include_router(ai.router, prefix="/ai", tags=["AI"])
+app.include_router(centers.router, prefix="/centers", tags=["Centers"])
 
 
 @app.get("/health")
