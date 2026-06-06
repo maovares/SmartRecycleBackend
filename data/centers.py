@@ -57,10 +57,26 @@ CENTERS = [
 ]
 
 
-def find_nearest(material: str | None = None) -> dict:
-    """Retorna el primer centro que acepta el material, o el primero de la lista."""
-    if material:
-        for c in CENTERS:
-            if any(material.upper() in m.upper() for m in c["materials"]):
-                return c
-    return CENTERS[0]
+import math
+
+
+def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlng / 2) ** 2
+    return R * 2 * math.asin(math.sqrt(a))
+
+
+def find_nearest(material: str | None = None, lat: float | None = None, lng: float | None = None) -> dict:
+    candidates = [c for c in CENTERS if not material or any(material.upper() in m.upper() for m in c["materials"])]
+    if not candidates:
+        candidates = CENTERS
+
+    if lat is not None and lng is not None:
+        candidates = sorted(candidates, key=lambda c: _haversine(lat, lng, c["lat"], c["lng"]))
+        best = dict(candidates[0])
+        best["distance_km"] = round(_haversine(lat, lng, candidates[0]["lat"], candidates[0]["lng"]), 1)
+        return best
+
+    return candidates[0]

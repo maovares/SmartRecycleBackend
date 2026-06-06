@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Header
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header
 from typing import Annotated
 from models.schemas import AnalysisResponse, Impact, NearestCenter
 from services import firebase_auth, gemini
@@ -24,6 +24,8 @@ async def _get_user(authorization: Annotated[str, Header()]) -> dict:
 async def analyze_image(
     image: UploadFile = File(...),
     authorization: Annotated[str, Header()] = "",
+    lat: float | None = Form(None),
+    lng: float | None = Form(None),
 ):
     # Auth
     user = await _get_user(authorization)
@@ -49,7 +51,7 @@ async def analyze_image(
         raise HTTPException(status_code=502, detail=f"Error al analizar con IA: {exc}")
 
     material = result.get("material", "Desconocido")
-    center = find_nearest(material)
+    center = find_nearest(material, lat, lng)
 
     return AnalysisResponse(
         material=material,
