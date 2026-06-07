@@ -80,9 +80,6 @@ async def nearby_centers(
         distance_km = round(_haversine(lat, lng, place_lat, place_lng), 1) if place_lat and place_lng else None
 
         hours = place.get("opening_hours", {})
-        schedule = "Horario no disponible"
-        if hours.get("weekday_text"):
-            schedule = hours["weekday_text"][0]
 
         results.append({
             "id": place.get("place_id"),
@@ -91,7 +88,6 @@ async def nearby_centers(
             "distance_km": distance_km,
             "lat": place_lat,
             "lng": place_lng,
-            "schedule": schedule,
             "open_now": hours.get("open_now"),
         })
 
