@@ -1,8 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header
 from typing import Annotated
-from models.schemas import AnalysisResponse, Impact, NearestCenter
+from models.schemas import AnalysisResponse, Impact
 from services import firebase_auth, gemini
-from data.centers import find_nearest
 
 router = APIRouter()
 
@@ -24,8 +23,6 @@ async def _get_user(authorization: Annotated[str, Header()]) -> dict:
 async def analyze_image(
     image: UploadFile = File(...),
     authorization: Annotated[str, Header()] = "",
-    lat: float | None = Form(None),
-    lng: float | None = Form(None),
 ):
     # Auth
     user = await _get_user(authorization)
@@ -50,21 +47,14 @@ async def analyze_image(
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Error al analizar con IA: {exc}")
 
-    material = result.get("material", "Desconocido")
-    center = find_nearest(material, lat, lng)
-
     return AnalysisResponse(
-        material=material,
+        material=result.get("material", "Desconocido"),
         object=result.get("object", "Objeto no identificado"),
         recyclable=bool(result.get("recyclable", False)),
         instructions=result.get("instructions", []),
         impact=Impact(
             co2_kg=float(result.get("impact", {}).get("co2_kg", 0.0)),
             water_l=float(result.get("impact", {}).get("water_l", 0.0)),
-        ),
-        nearest_center=NearestCenter(
-            name=center["name"],
-            distance_km=center["distance_km"],
         ),
         points=int(result.get("points", 5)),
     )
