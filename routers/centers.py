@@ -25,11 +25,17 @@ _http = httpx.AsyncClient(timeout=10)
 
 # ── Server-side in-memory cache keyed by ~1 km coordinate bucket + radius ────
 _cache: dict[str, tuple[list, float]] = {}
-_CACHE_TTL = 1800  # 30 minutes
+_CACHE_TTL = 7200  # 2 hours — centers rarely move or change hours
 
 
 def _cache_key(lat: float, lng: float, radius: int) -> str:
     return f"{round(lat, 2)},{round(lng, 2)},{radius}"
+
+
+def _evict_expired() -> None:
+    now = time.time()
+    for k in [k for k, (_, ts) in _cache.items() if now - ts > _CACHE_TTL]:
+        del _cache[k]
 
 
 def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
@@ -45,6 +51,7 @@ async def _search_keyword(client: httpx.AsyncClient, lat: float, lng: float, rad
         "location": f"{lat},{lng}",
         "radius": radius,
         "keyword": keyword,
+        "language": "es",
         "key": PLACES_API_KEY,
     }
     resp = await client.get(NEARBY_URL, params=params)
@@ -65,6 +72,7 @@ async def nearby_centers(
     if not PLACES_API_KEY:
         raise HTTPException(status_code=503, detail="Google Places API key not configured.")
 
+    _evict_expired()
     key = _cache_key(lat, lng, radius)
     cached = _cache.get(key)
     if cached and time.time() - cached[1] < _CACHE_TTL:
