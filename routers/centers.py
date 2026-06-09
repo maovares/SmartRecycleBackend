@@ -1,5 +1,6 @@
 import os
 import math
+import time
 import asyncio
 import httpx
 from fastapi import APIRouter, HTTPException, Query
@@ -10,18 +11,25 @@ router = APIRouter()
 DEFAULT_RADIUS_M = 20_000          # 20 km — reasonable for car travel
 MAX_RADIUS_M     = 50_000          # hard cap exposed to callers
 
-# Multiple keywords are searched in parallel and deduplicated.
-# Add or remove terms here to tune what Places returns.
 SEARCH_KEYWORDS = [
     "centro de acopio",
     "reciclaje",
-    "punto limpio",
-    "acopio residuos",
 ]
 # ────────────────────────────────────────────────────────────────────────────
 
 PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 NEARBY_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+
+# ── Persistent HTTP client (reuses TLS connections across requests) ───────────
+_http = httpx.AsyncClient(timeout=10)
+
+# ── Server-side in-memory cache keyed by ~1 km coordinate bucket + radius ────
+_cache: dict[str, tuple[list, float]] = {}
+_CACHE_TTL = 1800  # 30 minutes
+
+
+def _cache_key(lat: float, lng: float, radius: int) -> str:
+    return f"{round(lat, 2)},{round(lng, 2)},{radius}"
 
 
 def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
@@ -57,10 +65,14 @@ async def nearby_centers(
     if not PLACES_API_KEY:
         raise HTTPException(status_code=503, detail="Google Places API key not configured.")
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        responses = await asyncio.gather(
-            *[_search_keyword(client, lat, lng, radius, kw) for kw in SEARCH_KEYWORDS]
-        )
+    key = _cache_key(lat, lng, radius)
+    cached = _cache.get(key)
+    if cached and time.time() - cached[1] < _CACHE_TTL:
+        return {"centers": cached[0]}
+
+    responses = await asyncio.gather(
+        *[_search_keyword(_http, lat, lng, radius, kw) for kw in SEARCH_KEYWORDS]
+    )
 
     # Merge and deduplicate by place_id
     seen = set()
@@ -92,4 +104,5 @@ async def nearby_centers(
         })
 
     results.sort(key=lambda c: c["distance_km"] if c["distance_km"] is not None else 9999)
+    _cache[key] = (results, time.time())
     return {"centers": results}
