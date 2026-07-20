@@ -19,6 +19,6 @@ app.include_router(ai.router, prefix="/ai", tags=["AI"])
 app.include_router(centers.router, prefix="/centers", tags=["Centers"])
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok", "service": "smart-recycle-api"}
