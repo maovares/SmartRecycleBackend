@@ -753,10 +753,30 @@ Si la respuesta de Gemini no puede parsearse como JSON válido, el servicio reto
 
 ---
 
-## Créditos y Licencia
+## Descarga y uso
+
+El código fuente de cada versión se descarga desde la sección **Releases**:
+
+**[Descargar la última versión](https://github.com/maovares/SmartRecycleBackend/releases/latest)**
+
+Este servicio es el backend de la aplicación móvil [SmartRecycleAI](https://github.com/maovares/SmartRecycleAI), cuyo APK para Android se descarga en [su propia sección de Releases](https://github.com/maovares/SmartRecycleAI/releases/latest). Para ejecutarlo usted mismo siga las secciones 12 a 14 de este README.
+
+---
+
+## Licencia y política de uso
+
+Este proyecto es **software libre** bajo la [licencia MIT](LICENSE). Usted puede usar, copiar, modificar, fusionar, publicar, distribuir y sublicenciar el software, incluso con fines comerciales, **siempre que conserve el aviso de copyright y la mención a los autores** en todas las copias o partes sustanciales del software.
+
+---
+
+## Créditos
 
 Desarrollado como proyecto de investigación aplicada para la gestión de residuos sólidos en Costa Rica, integrando técnicas de visión por computadora e inteligencia artificial generativa para el fomento de hábitos de reciclaje.
 
-**Autor:** Miguel Ángel Rodríguez Ovares  
-**Correo:** mrodriguezovares@gmail.com  
-**Año:** 2025–2026
+- **Autores:** Marcos Antonio Rodríguez Ovares (ma.rodriguez@itcr.ac.cr) y Kevin Said Reyes Quesada (k.reyes.1@estudiantec.cr)
+- **Institución:** Instituto Tecnológico de Costa Rica
+- **Año:** 2025–2026
+
+### Cómo citar
+
+M. Rodríguez Ovares y K. S. Reyes Quesada, "SmartRecycle AI: Plataforma Móvil de Reciclaje Inteligente Basada en Visión Computacional e Inteligencia Artificial Generativa," en *Actas de COMPDES 2026*, 2026.
